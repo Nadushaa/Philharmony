@@ -1,0 +1,74 @@
+{% extends 'concerts/base.html' %}
+
+{% block content %}
+    <div class="header">
+        <h1>Управление артистами</h1>
+        <h2 style="color: #666; font-weight: 300;">Концерт "{{ concert.title }}"</h2>
+    </div>
+
+    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+        <a href="{% url 'concert_detail' concert.id %}" class="btn" style="background: #6c757d; color: white;">
+            ← Назад к концерту
+        </a>
+        <a href="/admin/concerts/concertartist/add/" class="btn btn-primary">
+            ➕ Назначить артиста
+        </a>
+    </div>
+
+    <!-- Таблица артистов -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ФИО</th>
+                    <th>Амплуа</th>
+                    <th>Инструмент</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for concert_artist in artists %}
+                <tr>
+                    <td><strong>{{ concert_artist.artist.full_name }}</strong></td>
+                    <td>{{ concert_artist.artist.amu|default:"—" }}</td>
+                    <td>
+                        {% if concert_artist.instrument %}
+                            {{ concert_artist.instrument.name }} ({{ concert_artist.instrument.inventory_number }})
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="/admin/concerts/concertartist/{{ concert_artist.id }}/change/" class="btn" style="background: #ffc107; color: black; padding: 6px 10px; font-size: 12px;">
+                                ✏️
+                            </a>
+                            <a href="/admin/concerts/concertartist/{{ concert_artist.id }}/delete/" class="btn" style="background: #dc3545; color: white; padding: 6px 10px; font-size: 12px;">
+                                🗑️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 40px; color: #666;">
+                        🎵 Артисты еще не назначены. Нажмите "Назначить артиста" чтобы добавить участников концерта.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Подсказка -->
+    <div style="background: #e7f3ff; padding: 15px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #17a2b8;">
+        <strong>💡 Как добавить артистов:</strong>
+        <ol style="margin: 10px 0 0 20px;">
+            <li>Нажмите кнопку "Назначить артиста"</li>
+            <li>В форме выберите концерт "{{ concert.title }}"</li>
+            <li>Выберите артиста из списка</li>
+            <li>При необходимости выберите инструмент</li>
+            <li>Сохраните</li>
+        </ol>
+    </div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'concerts/base.html' %}
+
+{% block content %}
+    <div class="header">
+        <h1>Артисты филармонии</h1>
+        <a href="/admin/concerts/artist/add/" class="btn btn-primary">
+            ➕ Добавить артиста
+        </a>
+    </div>
+
+    <!-- Статистика -->
+    <div style="margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+        <div style="flex: 1; min-width: 200px; max-width: 250px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #667eea; margin-bottom: 8px;">{{ total_artists }}</div>
+            <div style="color: #666; font-size: 14px;">Всего артистов</div>
+        </div>
+        <div style="flex: 1; min-width: 200px; max-width: 250px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #28a745; margin-bottom: 8px;">{{ artists_with_concerts }}</div>
+            <div style="color: #666; font-size: 14px;">Задействовано в концертах</div>
+        </div>
+        <div style="flex: 1; min-width: 200px; max-width: 250px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #ffc107; margin-bottom: 8px;">{{ total_artists|add:"-1" }}</div>
+            <div style="color: #666; font-size: 14px;">Свободных артистов</div>
+        </div>
+    </div>
+
+    <!-- Поиск и фильтры -->
+    <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <input type="text" placeholder="🔍 Поиск по имени артиста..." style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; flex: 1; min-width: 250px;">
+            
+            <select style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: white;">
+                <option>Все амплуа</option>
+                <option>Дирижер</option>
+                <option>Солист</option>
+                <option>Скрипач</option>
+                <option>Пианист</option>
+                <option>Оркестр</option>
+            </select>
+            
+            <button class="btn" style="background: #17a2b8; color: white;">Поиск</button>
+            <button class="btn" style="background: #6c757d; color: white;">Сбросить</button>
+        </div>
+    </div>
+
+    <!-- Таблица артистов -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ФИО</th>
+                    <th>Амплуа</th>
+                    <th>Участие в концертах</th>
+                    <th>Контактная информация</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for artist in artists %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                {{ artist.full_name|slice:":1" }}
+                            </div>
+                            <strong>{{ artist.full_name }}</strong>
+                        </div>
+                    </td>
+                    <td>
+                        {% if artist.amu %}
+                            <span class="status" style="background: #e7f3ff; color: #17a2b8;">{{ artist.amu }}</span>
+                        {% else %}
+                            <span style="color: #999;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% with concert_count=artist.concertartist_set.count %}
+                            {% if concert_count > 0 %}
+                                <span style="color: #28a745; font-weight: 500;">{{ concert_count }} концерт{{ concert_count|pluralize:"а,ов" }}</span>
+                            {% else %}
+                                <span style="color: #6c757d;">Не участвует</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td>
+                        {% if artist.contact_info %}
+                            <span style="color: #666; font-size: 0.9em;">{{ artist.contact_info|truncatewords:5 }}</span>
+                        {% else %}
+                            <span style="color: #999;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="/admin/concerts/artist/{{ artist.id }}/change/" class="btn" style="background: #ffc107; color: black; padding: 6px 10px; font-size: 12px;">
+                                ✏️
+                            </a>
+                            <a href="/admin/concerts/concertartist/add/" class="btn" style="background: #17a2b8; color: white; padding: 6px 10px; font-size: 12px;">
+                                🎵
+                            </a>
+                            <a href="/admin/concerts/artist/{{ artist.id }}/delete/" class="btn" style="background: #dc3545; color: white; padding: 6px 10px; font-size: 12px;">
+                                🗑️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">👨‍🎤</div>
+                        <h4 style="margin-bottom: 10px;">Артисты не найдены</h4>
+                        <p style="margin-bottom: 20px;">Добавьте первого артиста в базу данных</p>
+                        <a href="/admin/concerts/artist/add/" class="btn btn-primary">
+                            ➕ Добавить артиста
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-top: 20px;">
+        <h3 style="margin-bottom: 20px; color: #333;">⚡ Быстрые действия</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <a href="/admin/concerts/artist/add/" class="btn" style="background: #28a745; color: white; text-align: center; padding: 15px;">
+                <div style="font-size: 24px; margin-bottom: 8px;">👨‍🎤</div>
+                Добавить артиста
+            </a>
+            <a href="/admin/concerts/concertartist/add/" class="btn" style="background: #17a2b8; color: white; text-align: center; padding: 15px;">
+                <div style="font-size: 24px; margin-bottom: 8px;">🎵</div>
+                Назначить на концерт
+            </a>
+            <a href="/admin/concerts/concert/add/" class="btn" style="background: #6f42c1; color: white; text-align: center; padding: 15px;">
+                <div style="font-size: 24px; margin-bottom: 8px;">📅</div>
+                Создать концерт
+            </a>
+            <a href="{% url 'concert_list' %}" class="btn" style="background: #6c757d; color: white; text-align: center; padding: 15px;">
+                <div style="font-size: 24px; margin-bottom: 8px;">🎪</div>
+                Все концерты
+            </a>
+        </div>
+    </div>
+{% endblock %}

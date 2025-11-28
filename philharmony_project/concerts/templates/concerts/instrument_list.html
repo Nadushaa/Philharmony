@@ -1,0 +1,175 @@
+{% extends 'concerts/base.html' %}
+
+{% block content %}
+    <div class="header">
+        <h1>Музыкальные инструменты</h1>
+        <a href="/admin/concerts/instrument/add/" class="btn btn-primary">
+            ➕ Добавить инструмент
+        </a>
+    </div>
+
+    <!-- Статистика -->
+    <div style="margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+        <div style="flex: 1; min-width: 200px; max-width: 250px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #667eea; margin-bottom: 8px;">{{ total_instruments }}</div>
+            <div style="color: #666; font-size: 14px;">Всего инструментов</div>
+        </div>
+        <div style="flex: 1; min-width: 200px; max-width: 250px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #28a745; margin-bottom: 8px;">{{ available_instruments }}</div>
+            <div style="color: #666; font-size: 14px;">Доступно для использования</div>
+        </div>
+    </div>
+
+    <!-- Распределение по типам -->
+    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px;">
+        <h3 style="margin-bottom: 20px; color: #333;">📊 Распределение инструментов по типам</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            {% for type in instruments_by_type %}
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 4px solid #667eea;">
+                <div style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 5px;">{{ type.type }}</div>
+                <div style="color: #667eea; font-size: 24px; font-weight: bold;">{{ type.count }}</div>
+                <div style="color: #666; font-size: 12px;">инструмент{{ type.count|pluralize:"ов" }}</div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 20px; color: #666;">
+                Нет данных о типах инструментов
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Поиск и фильтры -->
+    <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <input type="text" placeholder="🔍 Поиск по названию или инвентарному номеру..." style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; flex: 1; min-width: 250px;">
+            
+            <select style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: white;">
+                <option>Все типы</option>
+                <option>Струнные</option>
+                <option>Духовые</option>
+                <option>Язычковые</option>
+                <option>Ударные</option>
+                <option>Перкуссия</option>
+                <option>Клавишные</option>
+                <option>Электромузыкальные</option>
+            </select>
+            
+            <select style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: white;">
+                <option>Все состояния</option>
+                <option>Отличное</option>
+                <option>Требует настройки</option>
+                <option>В ремонте</option>
+            </select>
+            
+            <button class="btn" style="background: #17a2b8; color: white;">Поиск</button>
+            <button class="btn" style="background: #6c757d; color: white;">Сбросить</button>
+        </div>
+    </div>
+
+    <!-- Таблица инструментов -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Инструмент</th>
+                    <th>Тип</th>
+                    <th>Инвентарный номер</th>
+                    <th>Состояние</th>
+                    <th>Используется в концертах</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for instrument in instruments %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                                🎻
+                            </div>
+                            <strong>{{ instrument.name }}</strong>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status" style="background: #e7f3ff; color: #17a2b8;">{{ instrument.type }}</span>
+                    </td>
+                    <td>
+                        <code style="background: #f8f9fa; padding: 4px 8px; border-radius: 4px; font-family: monospace;">{{ instrument.inventory_number }}</code>
+                    </td>
+                    <td>
+                        {% if instrument.condition %}
+                            {% if instrument.condition == 'Отличное' %}
+                                <span class="status" style="background: #d4edda; color: #155724;">✅ {{ instrument.condition }}</span>
+                            {% elif instrument.condition == 'Требует настройки' %}
+                                <span class="status" style="background: #fff3cd; color: #856404;">⚡ {{ instrument.condition }}</span>
+                            {% elif instrument.condition == 'В ремонте' %}
+                                <span class="status" style="background: #f8d7da; color: #721c24;">🔧 {{ instrument.condition }}</span>
+                            {% else %}
+                                <span class="status">{{ instrument.condition }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: #999;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% with concert_count=instrument.concertartist_set.count %}
+                            {% if concert_count > 0 %}
+                                <span style="color: #28a745; font-weight: 500;">{{ concert_count }} концерт{{ concert_count|pluralize:"а,ов" }}</span>
+                            {% else %}
+                                <span style="color: #6c757d;">Не используется</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="/admin/concerts/instrument/{{ instrument.id }}/change/" class="btn" style="background: #ffc107; color: black; padding: 6px 10px; font-size: 12px;">
+                                ✏️
+                            </a>
+                            <a href="/admin/concerts/concertartist/add/" class="btn" style="background: #17a2b8; color: white; padding: 6px 10px; font-size: 12px;">
+                                🎵
+                            </a>
+                            <a href="/admin/concerts/instrument/{{ instrument.id }}/delete/" class="btn" style="background: #dc3545; color: white; padding: 6px 10px; font-size: 12px;">
+                                🗑️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">🎻</div>
+                        <h4 style="margin-bottom: 10px;">Инструменты не найдены</h4>
+                        <p style="margin-bottom: 20px;">Добавьте первый инструмент в базу данных</p>
+                        <a href="/admin/concerts/instrument/add/" class="btn btn-primary">
+                            ➕ Добавить инструмент
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-top: 20px;">
+        <h3 style="margin-bottom: 20px; color: #333;">⚡ Быстрые действия</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <a href="/admin/concerts/instrument/add/" class="btn" style="background: #28a745; color: white; text-align: center; padding: 15px;">
+                <div style="font-size: 24px; margin-bottom: 8px;">🎻</div>
+                Добавить инструмент
+            </a>
+            <a href="/admin/concerts/concertartist/add/" class="btn" style="background: #17a2b8; color: white; text-align: center; padding: 15px;">
+                <div style="font-size: 24px; margin-bottom: 8px;">🎵</div>
+                Назначить инструмент
+            </a>
+            <a href="{% url 'artist_list' %}" class="btn" style="background: #6f42c1; color: white; text-align: center; padding: 15px;">
+                <div style="font-size: 24px; margin-bottom: 8px;">👨‍🎤</div>
+                Все артисты
+            </a>
+            <a href="{% url 'concert_list' %}" class="btn" style="background: #6c757d; color: white; text-align: center; padding: 15px;">
+                <div style="font-size: 24px; margin-bottom: 8px;">🎪</div>
+                Все концерты
+            </a>
+        </div>
+    </div>
+{% endblock %}
