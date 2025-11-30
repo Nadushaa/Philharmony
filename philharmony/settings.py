@@ -148,7 +148,7 @@ LOGGING = {
     },
 }
 
-AUTH_USER_MODEL = 'concerts.CustomUser'
+#AUTH_USER_MODEL = 'concerts.CustomUser'
 
 # Настройки аутентификации
 LOGIN_URL = '/login/'
